@@ -3,7 +3,7 @@ import time
 import os
 import unittest
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 # TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 from digExtractor.extractor import Extractor
@@ -19,13 +19,12 @@ class TestEmailExtractorMethods(unittest.TestCase):
         pass
 
     def test_phone_extractor(self):
-
         doc = {'content': 'HOTMAIL:  sebasccelis@hotmail.com', 'b': 'world'}
 
         extractor = EmailExtractor().set_metadata({'extractor': 'email'})
         extractor_processor = ExtractorProcessor().set_input_fields(['content']).set_output_field('extracted').set_extractor(extractor)
         updated_doc = extractor_processor.extract(doc)
-        self.assertEqual(updated_doc['extracted']['value'], ['sebasccelis@hotmail.com'])
+        self.assertEqual(updated_doc['extracted']['value'], [{'email': 'sebasccelis@hotmail.com', 'obfuscation': 'False'}])
 
     
 

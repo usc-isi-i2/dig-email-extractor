@@ -2,7 +2,7 @@
 # @Author: ZwEin
 # @Date:   2016-06-21 12:36:47
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-09-30 16:05:41
+# @Last Modified time: 2016-09-30 22:27:59
 
 import copy 
 import types
@@ -15,9 +15,8 @@ class EmailExtractor(Extractor):
         self.renamed_input_fields = ['text']
 
     def extract(self, doc):
-
-        # return EE(_output_format='obfuscation').extract_email(doc['text'])
-        return EE(_output_format='list').extract_email(doc['text'])
+        return EE(_output_format='obfuscation').extract_email(doc['text'])
+        # return EE(_output_format='list').extract_email(doc['text'])
 
     def get_metadata(self):
         return copy.copy(self.metadata)
