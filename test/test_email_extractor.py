@@ -18,7 +18,7 @@ class TestEmailExtractorMethods(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_phone_extractor(self):
+    def test_email_extractor(self):
         doc = {'content': 'HOTMAIL:  sebasccelis@hotmail.com', 'b': 'world'}
 
         extractor = EmailExtractor().set_metadata({'extractor': 'email'})
