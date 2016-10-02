@@ -15,7 +15,7 @@ class EmailExtractor(Extractor):
         self.renamed_input_fields = ['text']
 
     def extract(self, doc):
-        if 'text' in doc
+        if 'text' in doc:
             return DIGEmailExtractor(_output_format='obfuscation').extract_email(doc['text'])
             # return DIGEmailExtractor(_output_format='list').extract_email(doc['text'])
         return None
