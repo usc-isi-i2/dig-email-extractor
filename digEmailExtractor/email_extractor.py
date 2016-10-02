@@ -2,12 +2,12 @@
 # @Author: ZwEin
 # @Date:   2016-06-21 12:36:47
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-09-30 22:27:59
+# @Last Modified time: 2016-10-02 15:25:48
 
 import copy 
 import types
 from digExtractor.extractor import Extractor
-from EE import EE
+from dig_email_extractor import DIGEmailExtractor
 
 class EmailExtractor(Extractor):
 
@@ -15,8 +15,9 @@ class EmailExtractor(Extractor):
         self.renamed_input_fields = ['text']
 
     def extract(self, doc):
-        return EE(_output_format='obfuscation').extract_email(doc['text'])
-        # return EE(_output_format='list').extract_email(doc['text'])
+        if 'text' in doc
+            return DIGEmailExtractor(_output_format='obfuscation').extract_email(doc['text'])
+            # return DIGEmailExtractor(_output_format='list').extract_email(doc['text'])
 
     def get_metadata(self):
         return copy.copy(self.metadata)

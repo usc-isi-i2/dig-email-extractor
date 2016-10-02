@@ -2,20 +2,20 @@
 # @Author: ZwEin
 # @Date:   2016-09-30 15:37:23
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-09-30 15:42:57
+# @Last Modified time: 2016-10-02 15:24:42
 
 
 import re
 import json
 from sets import Set
 
-class EE(object):
+class DIGEmailExtractor(object):
     """Extractor of email addresses from text.
     The legal definition is in https://en.wikipedia.org/wiki/Email_address
 
     This class attempts to map purposefully obfuscated email addresses to legal addresses.
 
-    Users of this class should call EE.extract_email(), see documentation.
+    Users of this class should call DIGEmailExtractor.extract_email(), see documentation.
     The main program is to test against the ground truth.
     """
 
@@ -67,7 +67,6 @@ class EE(object):
             r"(?<=\w\w\w|\wat)\[\](?=" + self.spelled_out_domain_regex + "?" + ")"
         ]
         self.at_regex = "(?:" + r'|'.join(self.at_regexes) + ")"
-        # print "at_regex:%s" % at_regex
 
         # People put junk between the "at" sign and the start of the domain
         self.at_postfix_regexes = [
@@ -77,7 +76,6 @@ class EE(object):
         self.at_postfix_regex = "(?:" + r'|'.join(self.at_postfix_regexes) + ")?"
 
         self.full_at_regex = self.at_regex + self.at_postfix_regex + "\s*"
-        # print "full_at_regex:%s" % full_at_regex
 
         # Character set defined by the standard
         self.basic_dns_label_regex = r"[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]"
@@ -136,7 +134,7 @@ class EE(object):
 
     def set_output_format(self, _output_format):
         # 1. list, 2. obfuscation
-        if _output_format not in [EE.EE_OUTPUT_FORMAT_LIST, EE.EE_OUTPUT_FORMAT_OBFUSCATION]:
+        if _output_format not in [DIGEmailExtractor.EE_OUTPUT_FORMAT_LIST, DIGEmailExtractor.EE_OUTPUT_FORMAT_OBFUSCATION]:
             raise Exception('output_format should be "list" or "obfuscation"')
         self.output_format = _output_format
 
@@ -149,7 +147,6 @@ class EE(object):
         :return:
         :rtype:
         """
-        # print "clean_domain:%s" % regex_match
         result = regex_match
         result = re.sub(self.gmail_synonyms_regex, "gmail", result)
         result = re.sub("\s+", ".", result)
@@ -190,13 +187,11 @@ class EE(object):
     def clean(self, matches):
         clean_results = Set()
         for (u, d) in matches:
-            # print "user: %s, domain: %s" % (u, d)
             domain = self.clean_domain(d)
-            username = EE.clean_username(u)
+            username = DIGEmailExtractor.clean_username(u)
             if domain and username:
                 email = username + "@" + domain
                 clean_results.add(email)
-                # print ">>> %s" % email
         return list(clean_results)
 
     def extract_domain(self, string):
@@ -211,12 +206,10 @@ class EE(object):
         clean_results = []
         for m in matches:
             clean_results.append(self.clean_domain(m))
-            # print("domains: "+', '.join(clean_results))
-        # print "\n"
         return clean_results
 
     def normalize(self, clean, unclean, output_format):
-        if self.output_format == EE.EE_OUTPUT_FORMAT_LIST:
+        if self.output_format == DIGEmailExtractor.EE_OUTPUT_FORMAT_LIST:
             return clean
         else:
             output = []
@@ -224,9 +217,7 @@ class EE(object):
                 email = {}
                 email['email'] = co
                 tmp_unclean = list(unclean)
-                # print co, tmp_unclean
                 if co in [username.strip() + "@" + domain.strip() for username, domain in tmp_unclean if domain and username]:
-                    # print co
                     for tuc in tmp_unclean:
                         username, domain = tuc
                         tuc_string = username.strip() + "@" + domain.strip()
@@ -234,7 +225,7 @@ class EE(object):
                             unclean.remove(tuc)
                             continue
                         domain = self.clean_domain(domain)
-                        username = EE.clean_username(username)
+                        username = DIGEmailExtractor.clean_username(username)
                         if domain and username:
                             email_string = username + "@" + domain
                             if email_string == co:
@@ -244,30 +235,6 @@ class EE(object):
                 else:
                     email['obfuscation'] = 'True'
                 output.append(email)
-            return output
-
-
-
-
-
-
-
-
-
-            # uc_tc = self.clean(unclean)
-            # for co in clean:
-            #     email = {}
-            #     email['email'] = co
-            #     if co in unclean:
-            #         for uo in uc_tc:
-            #             if co == uo:
-            #                 email['obfuscation'] = 'True'
-            #                 break
-            #         if obfuscation not in email:
-            #             email['obfuscation'] = 'False'
-            #     else:
-            #         email['obfuscation'] = 'True'
-            #     output.append(email)
             return output
 
     def extract_email(self, string, return_as_string=False):
@@ -281,15 +248,9 @@ class EE(object):
         line = re.sub(r"[*?]+", " ", line)
         line = re.sub(r"\\n", " ", line)
         line = re.sub(r"\s+g\s+mail\s+", " gmail ", line)
-        # print line
-        # return EE.extract_domain(line)
 
         matches = re.findall(self.email_regex, line)
         clean_results = self.clean(matches)
-        # matches = [username.strip() + "@" + domain.strip() for username, domain in matches if domain and username]
-        # print '#'*20
-        # print [username.strip() + "@" + domain.strip() for username, domain in matches if domain and username]
-        # print clean_results
         output = self.normalize(clean_results, matches, self.output_format)
         
         if return_as_string:

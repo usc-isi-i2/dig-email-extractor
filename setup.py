@@ -2,7 +2,7 @@
 # @Author: ZwEin
 # @Date:   2016-09-30 14:01:47
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-09-30 16:11:26
+# @Last Modified time: 2016-10-02 15:20:43
 
 
 from distutils.core import setup
@@ -15,9 +15,9 @@ setup(
     description = 'digEmailExtractor',
     author = 'Lingzhe Teng',
     author_email = 'zwein27@gmail.com',
-    url = 'https://github.com/ZwEin27/dig-email-extractor',
-    download_url = 'https://github.com/ZwEin27/dig-email-extractor',
+    url = 'https://github.com/usc-isi-i2/dig-email-extractor',
+    download_url = 'https://github.com/usc-isi-i2/dig-email-extractor',
     packages = find_packages(),
     keywords = ['email', 'extractor'],
-    install_requires=['digSparkUtil', 'digExtractor']
+    install_requires=['digExtractor']
 )
