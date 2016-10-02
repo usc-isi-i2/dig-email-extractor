@@ -2,7 +2,7 @@
 # @Author: ZwEin
 # @Date:   2016-06-21 12:36:47
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-10-02 15:32:04
+# @Last Modified time: 2016-10-02 15:42:03
 
 import copy 
 import types
@@ -18,6 +18,7 @@ class EmailExtractor(Extractor):
         if 'text' in doc
             return DIGEmailExtractor(_output_format='obfuscation').extract_email(doc['text'])
             # return DIGEmailExtractor(_output_format='list').extract_email(doc['text'])
+        return None
 
     def get_metadata(self):
         return copy.copy(self.metadata)
