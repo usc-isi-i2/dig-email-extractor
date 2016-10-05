@@ -24,7 +24,7 @@ class TestEmailExtractorMethods(unittest.TestCase):
         extractor = EmailExtractor().set_metadata({'extractor': 'email'})
         extractor_processor = ExtractorProcessor().set_input_fields(['content']).set_output_field('extracted').set_extractor(extractor)
         updated_doc = extractor_processor.extract(doc)
-        self.assertEqual(updated_doc['extracted']['value'], [{'email': 'sebasccelis@hotmail.com', 'obfuscation': 'False'}])
+        self.assertEqual(updated_doc['extracted'][0]['value'], [{'email': 'sebasccelis@hotmail.com', 'obfuscation': 'False'}])
 
     
 
