@@ -13,11 +13,14 @@ class EmailExtractor(Extractor):
 
     def __init__(self):
         self.renamed_input_fields = ['text']
+        self.dee = DIGEmailExtractor()
 
     def extract(self, doc):
         if 'text' in doc:
-            return DIGEmailExtractor(_output_format='obfuscation')\
-                .extract_email(doc['text'])
+            if self.get_include_context():
+                return self.dee.extract_email_with_context(doc['text'])
+            else:
+                return self.dee.extract_email(doc['text'])
         return None
 
     def get_metadata(self):
