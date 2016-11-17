@@ -340,6 +340,9 @@ class DIGEmailExtractor(object):
         clean_results = list()
         for m in self.extract_usernames_and_domains_matches(string):
             clean_email = self.clean_match(m)
+            if not clean_email:
+                continue
+
             username, domain = clean_email.split('@')
 
             if username in DE_SOCIAL_MEDIA_NAMES:
