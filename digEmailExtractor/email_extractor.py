@@ -4,20 +4,23 @@
 # @Last Modified by:   ZwEin
 # @Last Modified time: 2016-10-02 16:27:12
 
-import copy 
-import types
+import copy
 from digExtractor.extractor import Extractor
 from dig_email_extractor import DIGEmailExtractor
+
 
 class EmailExtractor(Extractor):
 
     def __init__(self):
         self.renamed_input_fields = ['text']
+        self.dee = DIGEmailExtractor()
 
     def extract(self, doc):
         if 'text' in doc:
-            return DIGEmailExtractor(_output_format='obfuscation').extract_email(doc['text'])
-            # return DIGEmailExtractor(_output_format='list').extract_email(doc['text'])
+            if self.get_include_context():
+                return self.dee.extract_email_with_context(doc['text'])
+            else:
+                return self.dee.extract_email(doc['text'])
         return None
 
     def get_metadata(self):
@@ -29,4 +32,3 @@ class EmailExtractor(Extractor):
 
     def get_renamed_input_fields(self):
         return self.renamed_input_fields
-

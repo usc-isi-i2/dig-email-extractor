@@ -6,8 +6,8 @@
 
 
 import re
-import json
 from sets import Set
+
 
 class DIGEmailExtractor(object):
     """Extractor of email addresses from text.
@@ -19,10 +19,7 @@ class DIGEmailExtractor(object):
     The main program is to test against the ground truth.
     """
 
-    EE_OUTPUT_FORMAT_LIST = 'list'
-    EE_OUTPUT_FORMAT_OBFUSCATION = 'obfuscation'
-
-    def __init__(self, _output_format='list'):
+    def __init__(self):
 
         self.common_domains = [
             "gmail",
@@ -36,10 +33,10 @@ class DIGEmailExtractor(object):
 
         self.gmail_synonyms = [
             "gee mail",
-            "g mail"
+            "g mail",
             "gml"
         ]
-        self.gmail_synonyms_regex = "(?:" + "|".join(self.gmail_synonyms) + ")"
+        self.gmail_synonyms_regex = r"(" + "|".join(self.gmail_synonyms) + ")"
 
         self.com_synonyms = [
             r"com\b",
@@ -49,8 +46,10 @@ class DIGEmailExtractor(object):
         self.com_synonyms_regex = r"(?:" + "|".join(self.com_synonyms) + ")"
 
         # The intent here is to match things like "yahoo com", "yahoo dot com"
-        # We require matching the com synonyms to avoid interpreting text that contains "at yahoo" as part of a domain name.
-        self.spelled_out_domain_regex = r"(?:" + self.common_domains_regex + "(?:(?:dot\s+|\.+|\,+|\s+)" + self.com_synonyms_regex + "))"
+        # We require matching the com synonyms to avoid interpreting text that
+        # contains "at yahoo" as part of a domain name.
+        self.spelled_out_domain_regex = r"(?:" + self.common_domains_regex + \
+            "(?:(?:dot\s+|\.+|\,+|\s+)" + self.com_synonyms_regex + "))"
         # print "spelled_out_domain_regex:%s" % spelled_out_domain_regex
 
         self.at_regexes = [
@@ -64,7 +63,8 @@ class DIGEmailExtractor(object):
             r"@at\s+",
             r"at\s+(?=" + self.spelled_out_domain_regex + ")",
             r"(?<=\w\w\w|\wat)\s+(?=" + self.spelled_out_domain_regex + ")",
-            r"(?<=\w\w\w|\wat)\[\](?=" + self.spelled_out_domain_regex + "?" + ")"
+            r"(?<=\w\w\w|\wat)\[\](?=" +
+            self.spelled_out_domain_regex + "?" + ")"
         ]
         self.at_regex = "(?:" + r'|'.join(self.at_regexes) + ")"
 
@@ -73,7 +73,8 @@ class DIGEmailExtractor(object):
             ",+\s*",
             "\.+\s*"
         ]
-        self.at_postfix_regex = "(?:" + r'|'.join(self.at_postfix_regexes) + ")?"
+        self.at_postfix_regex = "(?:" + \
+            r'|'.join(self.at_postfix_regexes) + ")?"
 
         self.full_at_regex = self.at_regex + self.at_postfix_regex + "\s*"
 
@@ -87,7 +88,8 @@ class DIGEmailExtractor(object):
             "\(+" + self.basic_dns_label_regex + "\)+",
             "\[+" + self.basic_dns_label_regex + "\]+"
         ]
-        self.dns_label_regex = "(?:" + "|".join(self.wrapped_basic_dns_label_regexes) + ")"
+        self.dns_label_regex = "(?:" + \
+            "|".join(self.wrapped_basic_dns_label_regexes) + ")"
 
         # People put all kinds of junk between the parts of a domain name
         self.dot_regex = "[(\[]*dot[)\]]*"
@@ -99,9 +101,12 @@ class DIGEmailExtractor(object):
             "\{+\.+\}+",
             "\s+(?=" + self.com_synonyms_regex + ")"
         ]
-        self.dns_separator_regex = "(?:" + ",*" + "|".join(self.dns_separator_regexes) + ",*" + ")"
+        self.dns_separator_regex = "(?:" + ",*" + \
+            "|".join(self.dns_separator_regexes) + ",*" + ")"
 
-        self.dns_re = self.full_at_regex + r"(" + self.dns_label_regex + r"(?:" + self.dns_separator_regex + self.dns_label_regex + r")*)"
+        self.dns_re = self.full_at_regex + \
+            r"(" + self.dns_label_regex + r"(?:" + \
+            self.dns_separator_regex + self.dns_label_regex + r")*)"
 
         #
         # Regex for the user name part of legal addresses.
@@ -110,7 +115,8 @@ class DIGEmailExtractor(object):
         # Assuming that special characters are not used, this can be added later.
         # from wikipedia: space and "(),:;<>@[\] characters are allowed with restrictions
         # all allowed: !#$%&'*+-/=?^_`{|}~ and space
-        # allowed without quoting: !#$%&'*+-/?^_`{|}~, dot can appear, but not at the beginning
+        # allowed without quoting: !#$%&'*+-/?^_`{|}~, dot can appear, but not
+        # at the beginning
 
         # The full set requires starting with alphanumeric, this is because of all the junk
         # that appears often. Also require at least 4 characters.
@@ -123,20 +129,15 @@ class DIGEmailExtractor(object):
         # such as me.......LouiseHolland41@gmail
         self.basic_username_regex = r"(?:[a-z0-9]+(?:(?:[-+_.]|[(]?dot[)]?)[a-z0-9]+)*\s*)"
 
-        # use lookahead to find the @ immediately following the user name, with possible spaces.
-        self.strict_username_regex = r"(?:" + self.full_username_regex + r"(?=@))"
+        # use lookahead to find the @ immediately following the user name, with
+        # possible spaces.
+        self.strict_username_regex = r"(?:" + \
+            self.full_username_regex + r"(?=@))"
 
-        self.username_regex = r"(" + self.basic_username_regex + r"|" + self.strict_username_regex + r")"
+        self.username_regex = r"(" + self.basic_username_regex + \
+            r"|" + self.strict_username_regex + r")"
 
         self.email_regex = self.username_regex + self.dns_re
-        self.set_output_format(_output_format)
-
-
-    def set_output_format(self, _output_format):
-        # 1. list, 2. obfuscation
-        if _output_format not in [DIGEmailExtractor.EE_OUTPUT_FORMAT_LIST, DIGEmailExtractor.EE_OUTPUT_FORMAT_OBFUSCATION]:
-            raise Exception('output_format should be "list" or "obfuscation"')
-        self.output_format = _output_format
 
     def clean_domain(self, regex_match):
         """Once we compute the domain, santity check it, being conservative and throwing out
@@ -155,14 +156,16 @@ class DIGEmailExtractor(object):
         result = re.sub("\.+", ".", result)
         result = result.strip()
 
-        # If the domain ends with one of the common domains, add .com at the end
+        # If the domain ends with one of the common domains, add .com at the
+        # end
         if re.match(self.common_domains_regex + "$", result):
             result += ".com"
         # All domains have to contain a .
         if result.find('.') < 0:
             return ''
         # If the doman contains gmail, it has has to be gmail.com
-        # This is drastic because of examples such as "at faithlynn1959@gmail. in call"
+        # This is drastic because of examples such as "at faithlynn1959@gmail.
+        # in call"
         if result.find('gmail') >= 0:
             if result != 'gmail.com':
                 return ''
@@ -184,15 +187,15 @@ class DIGEmailExtractor(object):
             return None
         return username
 
-    def clean(self, matches):
-        clean_results = Set()
-        for (u, d) in matches:
-            domain = self.clean_domain(d)
-            username = DIGEmailExtractor.clean_username(u)
-            if domain and username:
-                email = username + "@" + domain
-                clean_results.add(email)
-        return list(clean_results)
+    def clean_match(self, m):
+        u = m.group(1)
+        d = m.group(2)
+        domain = self.clean_domain(d)
+        username = DIGEmailExtractor.clean_username(u)
+        if domain and username:
+            email = username + "@" + domain
+            return email
+        return None
 
     def extract_domain(self, string):
         """Extract the domain part of an email address within a string.
@@ -208,55 +211,48 @@ class DIGEmailExtractor(object):
             clean_results.append(self.clean_domain(m))
         return clean_results
 
-    def normalize(self, clean, unclean, output_format):
-        if self.output_format == DIGEmailExtractor.EE_OUTPUT_FORMAT_LIST:
-            return clean
-        else:
-            output = []
-            for co in clean:
-                email = {}
-                email['email'] = co
-                tmp_unclean = list(unclean)
-                if co in [username.strip() + "@" + domain.strip() for username, domain in tmp_unclean if domain and username]:
-                    for tuc in tmp_unclean:
-                        username, domain = tuc
-                        tuc_string = username.strip() + "@" + domain.strip()
-                        if tuc_string == co:
-                            unclean.remove(tuc)
-                            continue
-                        domain = self.clean_domain(domain)
-                        username = DIGEmailExtractor.clean_username(username)
-                        if domain and username:
-                            email_string = username + "@" + domain
-                            if email_string == co:
-                                email['obfuscation'] = 'True'
-                    if 'obfuscation' not in email:
-                        email['obfuscation'] = 'False'
-                else:
-                    email['obfuscation'] = 'True'
-                output.append(email)
-            return output
+    def is_email_match_obfuscated(self, clean_email, unclean_email_match):
+        unclean_email = unclean_email_match.group(1).strip() + "@" + unclean_email_match.group(2).strip()
+        return clean_email != unclean_email
 
-    def extract_email(self, string, return_as_string=False):
+    @staticmethod
+    def prepare_input_string(string):
+        line = string.lower().replace('\n', ' ').replace('\r', '')
+        line = re.sub(r"[*?]+", " ", line)
+        line = re.sub(r"\\n", " ", line)
+        line = re.sub(r"\s+g\s+mail\s+", " gmail ", line)
+        return line
+
+    def extract_usernames_and_domains_matches(self, string):
+        line = DIGEmailExtractor.prepare_input_string(string)
+        return re.finditer(self.email_regex, line)
+
+    def extract_email(self, string):
         """Extract email address from string.
         :param string: the text to extract from
         :param return_as_string: whether to return the result as a string of comma-separated values or
         as a set
         :type return_as_string: Boolean
         """
-        line = string.lower().replace('\n', ' ').replace('\r', '')
-        line = re.sub(r"[*?]+", " ", line)
-        line = re.sub(r"\\n", " ", line)
-        line = re.sub(r"\s+g\s+mail\s+", " gmail ", line)
 
-        matches = re.findall(self.email_regex, line)
-        clean_results = self.clean(matches)
-        output = self.normalize(clean_results, matches, self.output_format)
-        
-        if return_as_string:
-            return ",".join(output)
-        else:
-            return output
+        clean_results = list()
 
+        for m in self.extract_usernames_and_domains_matches(string):
+            clean_email = self.clean_match(m)
+            clean_results.append(clean_email)
 
+        return list(frozenset(clean_results))
 
+    def extract_email_with_context(self, string):
+        # TODO refactor this so we aren't creating context manually
+        clean_results = list()
+        for m in self.extract_usernames_and_domains_matches(string):
+            clean_email = self.clean_match(m)
+            context = {}
+            context['value'] = clean_email
+            context['field'] = 'text'
+            context['start'] = m.start()
+            context['end'] = m.end()
+            context['obfuscation'] = self.is_email_match_obfuscated(clean_email, m)
+            clean_results.append(context)
+        return clean_results
