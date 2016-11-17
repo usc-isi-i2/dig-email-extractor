@@ -1,11 +1,10 @@
 import unittest
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-# TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+# import sys, os
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from digExtractor.extractor_processor import ExtractorProcessor
 from digEmailExtractor.email_extractor import EmailExtractor
-
 
 class TestEmailExtractorMethods(unittest.TestCase):
 
@@ -47,6 +46,18 @@ class TestEmailExtractorMethods(unittest.TestCase):
         self.assertEqual(result[1]['field'], 'text')
         self.assertEqual(result[1]['start'], 42)
         self.assertEqual(result[1]['end'], 57)
+
+    def test_removing_social_media_account(self):
+        doc = {'content': 'facebook:  facebook@hotmail.com  twitter: twitter@gml others: sebasccelis@gmail.com', 'b': 'world'}
+        extractor = EmailExtractor().set_metadata({'extractor': 'email'})
+        extractor.set_include_context(True)
+        ep = ExtractorProcessor().set_input_fields(['content'])\
+                                 .set_output_field('extracted')\
+                                 .set_extractor(extractor)
+        updated_doc = ep.extract(doc)
+        result = updated_doc['extracted'][0]['result']
+        print result
+
 
 if __name__ == '__main__':
     unittest.main()
