@@ -2,12 +2,96 @@
 # @Author: ZwEin
 # @Date:   2016-09-30 15:37:23
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-10-02 15:24:42
+# @Last Modified time: 2016-11-16 16:28:51
 
 
 import re
 from sets import Set
 
+################################################
+# Content
+################################################
+
+DE_SOCIAL_MEDIA_NAMES = [
+    "Facebook",
+    "QQ",
+    "WhatsApp",
+    "QZone",
+    "WeChat",
+    "LinkedIn",
+    "Skype",
+    "Instagram",
+    "Baidu ",
+    "Tieba",
+    "Twitter",
+    "Viber",
+    "Tumblr",
+    "Snapchat",
+    "LINE",
+    "Sina",
+    "Weibo",
+    "VK",
+    "Reddit",
+    "YY",
+    "Telegram",
+    "Tagged",
+    "Myspace",
+    "Badoo",
+    "StumbleUpon",
+    "Foursquare",
+    "MeetMe",
+    "Meetup",
+    "Delicious",
+    "Snapfish",
+    "DeviantArt",
+    "Fotolog",
+    "Buzznet",
+    "We Heart It",
+    "Path",
+    "Flixster",
+    "Gaia Online",
+    "CaringBridge",
+    "VampireFreaks",
+    "CafeMom",
+    "Ravelry",
+    "ASmallWorld",
+    "Nextdoor",
+    "Wayn",
+    "TravBuddy",
+    "Cellufun",
+    "MocoSpace",
+    "YouTube",
+    "Youku",
+    "Tout",
+    "Vine",
+    "Classmates",
+    "MyLife",
+    "MyHeritage",
+    "Ryze",
+    "Xing",
+    "WeeWorld",
+    "Habbo",
+    "Tuenti",
+    "Solaborate",
+    "Plurk",
+    "LiveJournal",
+    "Mixi",
+    "Douban",
+    "Renren",
+    "Odnoklassniki",
+    "NK",
+    "Netlog",
+    "StudiVZ",
+    "Friendster",
+    "Draugiem",
+    "Glocals"
+]
+
+DE_SOCIAL_MEDIA_NAMES = [_.lower() for _ in DE_SOCIAL_MEDIA_NAMES]
+
+################################################
+# Main
+################################################
 
 class DIGEmailExtractor(object):
     """Extractor of email addresses from text.
@@ -139,6 +223,10 @@ class DIGEmailExtractor(object):
 
         self.email_regex = self.username_regex + self.dns_re
 
+    ################################################
+    # Clean
+    ################################################
+    
     def clean_domain(self, regex_match):
         """Once we compute the domain, santity check it, being conservative and throwing out
         suspicious domains. Prefer precision to recall.
@@ -197,6 +285,10 @@ class DIGEmailExtractor(object):
             return email
         return None
 
+    ################################################
+    # Extract
+    ################################################
+
     def extract_domain(self, string):
         """Extract the domain part of an email address within a string.
         Separate method used for testing purposes only.
@@ -248,6 +340,11 @@ class DIGEmailExtractor(object):
         clean_results = list()
         for m in self.extract_usernames_and_domains_matches(string):
             clean_email = self.clean_match(m)
+            username, domain = clean_email.split('@')
+
+            if username in DE_SOCIAL_MEDIA_NAMES:
+                continue
+
             context = {}
             context['value'] = clean_email
             context['field'] = 'text'
@@ -256,3 +353,7 @@ class DIGEmailExtractor(object):
             context['obfuscation'] = self.is_email_match_obfuscated(clean_email, m)
             clean_results.append(context)
         return clean_results
+
+    
+
+
