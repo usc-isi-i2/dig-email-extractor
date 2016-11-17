@@ -56,7 +56,8 @@ class TestEmailExtractorMethods(unittest.TestCase):
                                  .set_extractor(extractor)
         updated_doc = ep.extract(doc)
         result = updated_doc['extracted'][0]['result']
-        print result
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['value'], 'sebasccelis@gmail.com')
 
 
 if __name__ == '__main__':
